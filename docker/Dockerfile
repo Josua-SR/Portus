@@ -7,12 +7,11 @@ COPY init /
 # Install Portus and prepare the /certificates directory.
 RUN chmod +x /init && \
     # add repositories
-    zypper ar -f obs://devel:languages:ruby/openSUSE_Leap_15.1 ruby && \
-    zypper ar -f obs://Virtualization:containers:Portus/openSUSE_Leap_15.1 portus && \
+    zypper ar -f obs://home:mayerjosua:branches:Portus/openSUSE_Leap_15.1 portus && \
     # refresh repositories and automatically trust their signing keys
     zypper --gpg-auto-import-keys ref && \
     # install portus
-    zypper -n in --from portus ruby-common portus && \
+    zypper -n in --from portus ruby2.6 ruby2.6-stdlib ruby2.6-rubygem-gem2rpm portus && \
     zypper clean -a && \
     # Prepare the certificates directory.
     rm -rf /etc/pki/trust/anchors && \
