@@ -19,3 +19,6 @@ RUN chmod +x /init && \
 
 EXPOSE 3000
 ENTRYPOINT ["/init"]
+
+# Hack for httpclient ssl
+RUN ln -sv /var/lib/ca-certificates/ca-bundle.pem /srv/Portus/vendor/bundle/ruby/2.6.0/gems/httpclient-2.8.3/lib/httpclient/cacert.pem
