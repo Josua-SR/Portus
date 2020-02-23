@@ -83,8 +83,7 @@ BuildRequires: libxml2-devel libxslt-devel
 BuildRequires: mysql-devel
 BuildRequires: postgresql-devel
 
-Requires:       config(%{rb_suffix}) >= %{rb_default_ruby_abi}
-Requires:       %rb_default_ruby_suffix
+Requires:       %{rb_suffix} >= %{portus_ruby_abi}
 BuildRequires:  %rb_default_ruby_suffix %{rb_default_ruby_suffix}-rubygem-gem2rpm
 BuildRequires:  %{rb_suffix}-devel
 
