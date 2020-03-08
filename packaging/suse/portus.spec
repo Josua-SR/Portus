@@ -75,7 +75,7 @@ BuildRequires: libxml2-devel libxslt-devel
 
 # DB-related libraries.
 BuildRequires: mysql-devel
-BuildRequires: postgresql-devel
+BuildRequires: pkgconfig(libpq)
 
 Requires:       %{rb_suffix} >= %{portus_ruby_abi}
 BuildRequires:  %rb_default_ruby_suffix %{rb_default_ruby_suffix}-rubygem-gem2rpm
