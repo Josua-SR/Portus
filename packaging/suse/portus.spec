@@ -145,9 +145,9 @@ for i in "${ary[@]}"; do
 done
 
 # Remove directories.
-find . -name "spec" -type d -exec rm -rfv {} +
-find vendor/bundle -name "test" -type d ! -path "*rack*/test" -exec rm -rfv {} +
-find . -name ".github" -type d -exec rm -rfv {} +
+find . -name "spec" -type d -exec rm -rf {} +
+find vendor/bundle -name "test" -type d ! -path "*rack*/test" -exec rm -rf {} +
+find . -name ".github" -type d -exec rm -rf {} +
 find . -name ".empty_directory" -type d -delete
 
 # Remove empty files which are not important.
@@ -156,7 +156,7 @@ find . -size 0 ! -path "*gem.build_complete" -delete
 %install
 install -d %{buildroot}%{portusdir}
 
-cp -av . %{buildroot}%{portusdir}
+cp -a . %{buildroot}%{portusdir}
 
 mkdir %{buildroot}%{portusdir}/log
 mkdir %{buildroot}%{portusdir}/tmp
