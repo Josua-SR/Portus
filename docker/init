@@ -20,7 +20,7 @@ wait_for_database() {
   RETRY=1
 
   while [ $RETRY -ne 0 ]; do
-    case $(portusctl exec rails r /srv/Portus/bin/check_db.rb | grep DB) in
+    case $(bundle exec rails r /srv/Portus/bin/check_db.rb | grep DB) in
       "DB_DOWN")
         if [ "$COUNT" -ge "$TIMEOUT" ]; then
           printf " [FAIL]\n"
@@ -35,7 +35,7 @@ wait_for_database() {
         if [ $should_setup -eq 1 ]; then
           # create db
           echo "Creating database"
-          portusctl exec rake db:create
+          bundle exec rake db:create
           if [ $? -ne 0 ]; then
             echo "Error creating database"
             exit 1
@@ -46,7 +46,7 @@ wait_for_database() {
         if [ $should_setup -eq 1 ]; then
           # apply schema and seed
           echo "Initializing database"
-          portusctl exec rake db:schema:load db:seed
+          bundle exec rake db:schema:load db:seed
           if [ $? -ne 0 ]; then
             echo "Error initializing database"
             exit 1
@@ -106,7 +106,7 @@ export RAILS_ENV="production"
 export CCONFIG_PREFIX="PORTUS"
 
 if [ -z "$PORTUS_GEM_GLOBAL" ]; then
-    export GEM_PATH="/srv/Portus/vendor/bundle/ruby/2.5.3"
+    export GEM_PATH="/srv/Portus/vendor"
 fi
 
 # On debug, print the environment in which we'll call Portus.
@@ -118,11 +118,11 @@ fi
 cd /srv/Portus
 if [ ! -z "$PORTUS_BACKGROUND" ]; then
     wait_for_database
-    portusctl exec rails r /srv/Portus/bin/background.rb
+    bundle exec rails r /srv/Portus/bin/background.rb
 elif [ -z "$PORTUS_INIT_COMMAND" ]; then
     setup_database
-    portusctl exec "pumactl -F /srv/Portus/config/puma.rb start"
+    bundle exec "pumactl -F /srv/Portus/config/puma.rb start"
 else
     wait_for_database
-    portusctl exec "$PORTUS_INIT_COMMAND"
+    bundle exec "$PORTUS_INIT_COMMAND"
 fi

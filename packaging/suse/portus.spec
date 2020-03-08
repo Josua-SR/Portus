@@ -17,21 +17,6 @@
 
 %define portusdir /srv/Portus
 
-# Base ruby engine.
-%define portus_ruby_abi   2.6.0
-%define rb_build_versions ruby26
-%define rb_build_abi      ruby:%{portus_ruby_abi}
-%define rb_suffix         ruby2.6
-
-%define fix_sheb() ( \
-  for i in $(grep '^#!/usr/bin/env ruby$' * -r | cut -d: -f1 | uniq);do\
-    sed -e 's|^#!/usr/bin/env ruby$|#!/usr/bin/ruby.%{rb_suffix}|g' -i $i;\
-  done;\
-  for i in $(grep '^#!/usr/bin/ruby$' * -r | cut -d: -f1 | uniq);do\
-     sed -e 's|^#!/usr/bin/ruby$|#!/usr/bin/ruby.%{rb_suffix}|g' -i $i;\
-  done;\
-)
-
 Name:           portus
 Version:        0
 Release:        0
@@ -77,11 +62,10 @@ BuildRequires: libxml2-devel libxslt-devel
 BuildRequires: mysql-devel
 BuildRequires: pkgconfig(libpq)
 
-Requires:       %{rb_suffix} >= %{portus_ruby_abi}
-BuildRequires:  %rb_default_ruby_suffix %{rb_default_ruby_suffix}-rubygem-gem2rpm
-BuildRequires:  %{rb_suffix}-devel
-
-BuildRequires: rubygem(%{rb_default_ruby_abi}:bundler)
+Requires: ruby(abi) = 2.6.0
+BuildRequires: ruby2.6-devel
+BuildRequires: rubygem(ruby:2.6.0:bundler)
+BuildRequires: rubygem(ruby:2.6.0:gem2rpm)
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
@@ -99,36 +83,29 @@ cp %{SOURCE1} .
 tar xzf node_modules.tar.gz
 
 # Deal with Ruby gems.
-install -d vendor/cache
 # obs-service-bundle_gems will install gems in SOURCE/vendor/cache when using the cpio strategy
 # https://github.com/openSUSE/obs-service-bundle_gems/
-cp %{_sourcedir}/vendor/cache/*.gem vendor/cache
+mkdir -p vendor/cache && cp %{_sourcedir}/vendor/cache/*.gem vendor/cache
 
-# Deploy gems for compiling the assets.
-export GEM_HOME=$PWD/vendor GEM_PATH=$PWD/vendor PATH=$PWD/vendor/bin:$PWD/bin:$PATH
+# set up gem paths with vendor folder
+export GEM_HOME=$PWD/vendor GEM_PATH=$PWD/vendor PATH=$PWD/vendor/bin:$PATH
 
-%fix_sheb
-
+#gem install vendor/cache/*.gem
 bundle config build.nokogiri --use-system-libraries
 bundle install --retry=3 --local --deployment --without test development
-
-%fix_sheb
 
 # Compile assets
 PORTUS_SECRET_KEY_BASE="ap" PORTUS_KEY_PATH="ap" PORTUS_PASSWORD="ap" \
   INCLUDE_ASSETS_GROUP=yes RAILS_ENV=production NODE_ENV=production \
-  ./bin/bundle exec rake portus:assets:compile
+  bundle exec rake portus:assets:compile
 
 # Install the final gems (i.e. exclude the `assets` group from the final
 # bundle). Unfortunately, bundler does not have a way to remove gems from a
 # given group. So, we have to remove all of them, and then install the ones we
 # want...
 rm -r vendor/bundle/ruby
-gem.%{rb_suffix} install --no-document --install-dir vendor/bundle/ruby/%{portus_ruby_abi}/ vendor/cache/bundler-*.gem
 bundle install --retry=3 --local --deployment --without test development assets
-rm -r vendor/bundle/ruby/%{portus_ruby_abi}/cache/*
-
-%fix_sheb
+rm -r vendor/bundle/ruby/*/cache/*
 
 # Patch landing_page
 APPLICATION_CSS=$(find . -name application-*.css 2>/dev/null)
