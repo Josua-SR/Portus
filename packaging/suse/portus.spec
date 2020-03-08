@@ -45,9 +45,6 @@ Source0:        Portus-%{version}.tar.gz
 # directory thanks to the yarn.lock file defined in the Portus repo.
 Source1:        node_modules.tar.gz
 Source2:        yarn.lock
-# We need to add bundler cause https://github.com/openSUSE/obs-service-bundle_gems
-# does not add it by default
-Source100:      bundler-1.16.4.gem
 
 Requires:       timezone
 Requires:       net-tools
@@ -84,6 +81,8 @@ Requires:       %{rb_suffix} >= %{portus_ruby_abi}
 BuildRequires:  %rb_default_ruby_suffix %{rb_default_ruby_suffix}-rubygem-gem2rpm
 BuildRequires:  %{rb_suffix}-devel
 
+BuildRequires: rubygem(%{rb_default_ruby_abi}:bundler)
+
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -104,19 +103,14 @@ install -d vendor/cache
 # obs-service-bundle_gems will install gems in SOURCE/vendor/cache when using the cpio strategy
 # https://github.com/openSUSE/obs-service-bundle_gems/
 cp %{_sourcedir}/vendor/cache/*.gem vendor/cache
-# copy bundler gem
-cp %{S:100} vendor/cache
 
 # Deploy gems for compiling the assets.
 export GEM_HOME=$PWD/vendor GEM_PATH=$PWD/vendor PATH=$PWD/vendor/bin:$PWD/bin:$PATH
 
-# Install bundler in the build system
 %fix_sheb
-gem.%{rb_suffix} install --no-document vendor/cache/bundler-*.gem
 
 bundle config build.nokogiri --use-system-libraries
 bundle install --retry=3 --local --deployment --without test development
-gem.%{rb_suffix} install --no-document --install-dir vendor/bundle/ruby/%{portus_ruby_abi}/ vendor/cache/bundler-*.gem
 
 %fix_sheb
 
